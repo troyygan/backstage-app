@@ -59,14 +59,14 @@ WORKDIR /app
 # can install production deps. The skeleton.tar.gz holds each package's package.json.
 COPY --chown=node:node .yarn ./.yarn
 COPY --chown=node:node .yarnrc.yml ./
-COPY --chown=node:node yarn.lock package.json packages/backend/dist/skeleton.tar.gz ./
+COPY --chown=node:node yarn.lock package.json app/packages/backend/dist/skeleton.tar.gz ./
 RUN tar xzf skeleton.tar.gz && rm skeleton.tar.gz
 
 RUN --mount=type=cache,target=/home/node/.cache/yarn,sharing=locked,uid=1000,gid=1000 \
     yarn workspaces focus --all --production && rm -rf "$(yarn cache clean)"
 
 # Then copy the backend bundle + config files.
-COPY --chown=node:node packages/backend/dist/bundle.tar.gz app-config.yaml app-config.production.yaml ./
+COPY --chown=node:node app/packages/backend/dist/bundle.tar.gz app-config.yaml app-config.production.yaml ./
 RUN tar xzf bundle.tar.gz && rm bundle.tar.gz
 
 CMD ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.production.yaml"]
