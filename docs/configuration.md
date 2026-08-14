@@ -25,7 +25,12 @@ CREATE USER backstage WITH PASSWORD '<strong-password>';
 GRANT ALL PRIVILEGES ON DATABASE backstage TO backstage;
 \c backstage
 GRANT ALL ON SCHEMA public TO backstage;   -- Postgres 15+
+ALTER USER backstage CREATEDB;             -- Backstage creates one database per plugin
 ```
+
+> **`CREATEDB` is required.** Backstage's Postgres plugin auto-creates a
+> database per plugin (catalog, search, techdocs, auth, scaffolder, …). Without
+> it, plugins fail at startup with `permission denied to create database`.
 
 ## TechDocs
 
