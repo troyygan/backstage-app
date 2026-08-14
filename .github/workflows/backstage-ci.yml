@@ -20,20 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Backstage backend bundle build. Yarn 4 is pinned by the repo's
-      # packageManager field; corepack enables it non-interactively.
-      - name: Enable corepack
-        run: corepack enable
-
-      - name: Install dependencies (yarn 4, immutable)
-        run: yarn install --immutable
-
-      # The backend bundle embeds the built frontend (served by app-backend).
-      - name: Typecheck + build backend bundle
-        run: |
-          yarn tsc
-          yarn build:backend
-
+      # Multi-stage Dockerfile: yarn install / tsc / build:backend all run
+      # inside the container, so this runner needs only `docker build`
+      # (no Node.js installed on the host).
       - name: Build image (tag = git SHA)
         run: docker build -f packages/backend/Dockerfile -t "$REGISTRY/$IMAGE:${GITHUB_SHA::12}" .
 
