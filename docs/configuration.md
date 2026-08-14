@@ -32,6 +32,14 @@ ALTER USER backstage CREATEDB;             -- Backstage creates one database per
 > database per plugin (catalog, search, techdocs, auth, scaffolder, …). Without
 > it, plugins fail at startup with `permission denied to create database`.
 
+## HTTPS
+
+`backend.https: true` generates a **self-signed cert** at startup. HTTPS is
+**required** — Backstage's frontend calls `crypto.randomUUID()`, which browsers
+only expose in secure contexts. Over plain HTTP on a LAN IP the UI errors with
+`globalThis.crypto.randomUUID is not a function`. Expect the browser's
+self-signed-cert warning on first visit.
+
 ## TechDocs
 
 `app-config.yaml` sets:
