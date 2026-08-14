@@ -13,6 +13,14 @@ backend:
   # all interfaces, the most permissive setting. The right value depends on your specific deployment.
   listen: ':7007'
 
+  # Serve over plain HTTP on the LAN. Backstage's default CSP (from Helmet) includes
+  # `upgrade-insecure-requests`, which rewrites every http:// subresource to https:// —
+  # with no TLS listener all JS/CSS fail with ERR_SSL_PROTOCOL_ERROR and the portal shows
+  # a blank page. Set it to `false` to remove that directive (see applyCspDirectives).
+  csp:
+    upgrade-insecure-requests: false
+    connect-src: ["'self'", 'http:', 'https:']
+
   # Postgres on docker-data-01 (192.168.1.32:5432). Shared `homelab` server; the
   # `backstage` database + user are created once (see stacks/backstage/README.md).
   # config options: https://node-postgres.com/apis/client
@@ -23,9 +31,6 @@ backend:
       port: ${POSTGRES_PORT:-5432}
       user: ${POSTGRES_USER}
       password: ${POSTGRES_PASSWORD}
-
-  csp:
-    connect-src: ["'self'", 'http:', 'https:']
 
 auth:
   # Guest sign-in is sufficient for the LAN-only eval portal. GitHub SSO is a
