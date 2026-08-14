@@ -19,13 +19,15 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get install -y --no-install-recommends python3 g++ build-essential libsqlite3-dev && \
     rm -rf /var/lib/apt/lists/*
 
+# Switch to the least-privileged user BEFORE creating /app, so the WORKDIR and
+# node_modules land owned by `node` (otherwise yarn install gets EACCES).
+USER node
+
 WORKDIR /app
 
 # The scaffold's .yarnrc.yml pins yarn 4.13.0 via yarnPath (.yarn/releases), so
 # no corepack/global yarn is needed — yarn resolves from the repo itself.
 COPY --chown=node:node . .
-
-USER node
 
 RUN yarn install --immutable
 
@@ -59,14 +61,16 @@ WORKDIR /app
 # can install production deps. The skeleton.tar.gz holds each package's package.json.
 COPY --chown=node:node .yarn ./.yarn
 COPY --chown=node:node .yarnrc.yml ./
-COPY --chown=node:node yarn.lock package.json app/packages/backend/dist/skeleton.tar.gz ./
+COPY --chown=node:node yarn.lock package.json ./
+COPY --from=build --chown=node:node app/packages/backend/dist/skeleton.tar.gz ./
 RUN tar xzf skeleton.tar.gz && rm skeleton.tar.gz
 
 RUN --mount=type=cache,target=/home/node/.cache/yarn,sharing=locked,uid=1000,gid=1000 \
     yarn workspaces focus --all --production && rm -rf "$(yarn cache clean)"
 
 # Then copy the backend bundle + config files.
-COPY --chown=node:node app/packages/backend/dist/bundle.tar.gz app-config.yaml app-config.production.yaml ./
+COPY --chown=node:node app-config.yaml app-config.production.yaml ./
+COPY --from=build --chown=node:node app/packages/backend/dist/bundle.tar.gz ./
 RUN tar xzf bundle.tar.gz && rm bundle.tar.gz
 
 CMD ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.production.yaml"]
