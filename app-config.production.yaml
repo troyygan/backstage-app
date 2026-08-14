@@ -13,6 +13,13 @@ backend:
   # all interfaces, the most permissive setting. The right value depends on your specific deployment.
   listen: ':7007'
 
+  # Serve HTTPS with a generated self-signed certificate. Backstage's frontend uses
+  # crypto.randomUUID(), which is only available in SECURE CONTEXTS (HTTPS or
+  # localhost). Over plain HTTP on a LAN IP the UI errors with
+  # "globalThis.crypto.randomUUID is not a function". `https: true` auto-generates
+  # a self-signed cert (accept the browser warning on first visit).
+  https: true
+
   # Serve over plain HTTP on the LAN. Backstage's default CSP (from Helmet) includes
   # `upgrade-insecure-requests`, which rewrites every http:// subresource to https:// —
   # with no TLS listener all JS/CSS fail with ERR_SSL_PROTOCOL_ERROR and the portal shows
