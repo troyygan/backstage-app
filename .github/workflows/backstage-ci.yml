@@ -1,0 +1,52 @@
+name: backstage-build-and-push
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "app-config*.yaml"
+      - "package.json"
+      - "yarn.lock"
+      - "backstage.json"
+      - "Dockerfile"
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, homelab]
+    env:
+      REGISTRY: registry.homelab.lan:5000
+      IMAGE: backstage
+    steps:
+      - uses: actions/checkout@v4
+
+      # Backstage backend bundle build. Yarn 4 is pinned by the repo's
+      # packageManager field; corepack enables it non-interactively.
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies (yarn 4, immutable)
+        run: yarn install --immutable
+
+      # The backend bundle embeds the built frontend (served by app-backend).
+      - name: Typecheck + build backend bundle
+        run: |
+          yarn tsc
+          yarn build:backend
+
+      - name: Build image (tag = git SHA)
+        run: docker build -f packages/backend/Dockerfile -t "$REGISTRY/$IMAGE:${GITHUB_SHA::12}" .
+
+      - name: Push immutable SHA tag
+        run: docker push "$REGISTRY/$IMAGE:${GITHUB_SHA::12}"
+
+      - name: Push latest (moving tag)
+        run: |
+          docker tag  "$REGISTRY/$IMAGE:${GITHUB_SHA::12}" "$REGISTRY/$IMAGE:latest"
+          docker push "$REGISTRY/$IMAGE:latest"
+
+      - name: Trigger Portainer redeploy
+        if: env.PORTAINER_WEBHOOK_URL != ''
+        run: curl -fsS -X POST "$PORTAINER_WEBHOOK_URL"
+        env:
+          PORTAINER_WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}

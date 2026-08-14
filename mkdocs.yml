@@ -1,0 +1,11 @@
+site_name: backstage-app
+site_description: TechDocs for the Troyygan homelab Backstage developer portal
+docs_dir: docs
+
+nav:
+  - Overview: index.md
+  - Catalog model: catalog-model.md
+  - Configuration: configuration.md
+
+plugins:
+  - techdocs-core

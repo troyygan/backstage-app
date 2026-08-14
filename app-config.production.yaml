@@ -1,0 +1,48 @@
+# Production configuration — used by the Docker image (see packages/backend/Dockerfile CMD).
+# All values are env-driven; secrets are injected by Portainer per-stack env vars, never committed.
+
+app:
+  # Should be the same as backend.baseUrl when using the `app-backend` plugin.
+  # Set to the browser-facing URL via the BACKSTAGE_APP_URL env var
+  # (dev: http://192.168.1.30:7007, core: http://backstage.homelab.lan).
+  baseUrl: ${BACKSTAGE_APP_URL:-http://localhost:7007}
+
+backend:
+  baseUrl: ${BACKSTAGE_APP_URL:-http://localhost:7007}
+  # The listener can also be expressed as a single <host>:<port> string. In this case we bind to
+  # all interfaces, the most permissive setting. The right value depends on your specific deployment.
+  listen: ':7007'
+
+  # Postgres on docker-data-01 (192.168.1.32:5432). Shared `homelab` server; the
+  # `backstage` database + user are created once (see stacks/backstage/README.md).
+  # config options: https://node-postgres.com/apis/client
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST:-192.168.1.32}
+      port: ${POSTGRES_PORT:-5432}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+
+auth:
+  # Guest sign-in is sufficient for the LAN-only eval portal. GitHub SSO is a
+  # future step (the github-provider auth module is already wired in src/index.ts).
+  providers:
+    guest: {}
+
+catalog:
+  # Explicit URL locations — `troyygan` is a personal GitHub account, so org
+  # discovery doesn't apply; each repo exposes its own catalog-info.yaml.
+  # Token-based fetches come from the `integrations.github` token in app-config.yaml.
+  locations:
+    - type: url
+      target: https://github.com/troyygan/homelab-workloads/blob/main/catalog-info.yaml
+
+    - type: url
+      target: https://github.com/troyygan/homelab-platform/blob/main/catalog-info.yaml
+
+    - type: url
+      target: https://github.com/troyygan/backstage-app/blob/main/catalog-info.yaml
