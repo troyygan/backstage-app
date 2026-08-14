@@ -33,10 +33,14 @@ backend:
       password: ${POSTGRES_PASSWORD}
 
 auth:
-  # Guest sign-in is sufficient for the LAN-only eval portal. GitHub SSO is a
-  # future step (the github-provider auth module is already wired in src/index.ts).
+  # Guest sign-in for the LAN-only eval portal. `dangerouslyAllowOutsideDevelopment`
+  # is REQUIRED: without it, the guest provider refuses to issue tokens when
+  # NODE_ENV=production (the Docker image runs in production mode), and the UI
+  # shows "You cannot sign in as a guest". GitHub SSO is a future step (the
+  # github-provider auth module is already wired in src/index.ts).
   providers:
-    guest: {}
+    guest:
+      dangerouslyAllowOutsideDevelopment: true
 
 catalog:
   # Explicit URL locations — `troyygan` is a personal GitHub account, so org
