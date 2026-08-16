@@ -41,9 +41,9 @@ backend:
       password: ${POSTGRES_PASSWORD}
 
 auth:
-  # GitHub SSO (Phase 1). clientId/Secret are injected via Portainer env vars.
-  # `usernameMatchingUserEntityName` maps the GitHub login to a catalog User
-  # entity (homelab-workloads/org.yaml -> User "troyygan").
+  # GitHub SSO — the only sign-in provider. clientId/Secret are injected via
+  # Portainer env vars. `usernameMatchingUserEntityName` maps the GitHub login
+  # to a catalog User entity (homelab-workloads/org.yaml -> User "troyygan").
   providers:
     github:
       production:
@@ -52,12 +52,6 @@ auth:
         signIn:
           resolvers:
             - resolver: usernameMatchingUserEntityName
-    # Guest sign-in for LAN convenience — keep during the SSO transition, then
-    # remove. `dangerouslyAllowOutsideDevelopment` is REQUIRED: without it, the
-    # guest provider refuses to issue tokens when NODE_ENV=production (the
-    # Docker image runs in production mode).
-    guest:
-      dangerouslyAllowOutsideDevelopment: true
 
 catalog:
   # Explicit URL locations — `troyygan` is a personal GitHub account, so org

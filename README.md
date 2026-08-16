@@ -19,8 +19,8 @@ lives in `homelab-workloads/stacks/backstage/`.
 - **TechDocs** — renders existing markdown `docs/` folders (via `mkdocs.yml` +
   `backstage.io/techdocs-ref` annotations).
 - **Search** — Postgres-backed search over catalog + docs.
-- **GitHub SSO** — sign in with your GitHub account (`usernameMatchingUserEntityName` →
-  catalog `User` `troyygan`). Guest auth kept during the transition.
+- **GitHub SSO** — the only sign-in method; maps your GitHub login to the
+  catalog `User` `troyygan` (`usernameMatchingUserEntityName`).
 
 ## Repository layout
 
