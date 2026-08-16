@@ -14,17 +14,12 @@ backend:
   # all interfaces, the most permissive setting. The right value depends on your specific deployment.
   listen: ':7007'
 
-  # Serve HTTPS with Backstage's generated self-signed certificate (dev +
-  # direct-port access). On core, Traefik terminates TLS and Backstage serves
-  # PLAIN HTTP internally: `--config app-config.traefik.yaml` is appended by the
-  # Dockerfile CMD when BACKSTAGE_HTTPS is set, overriding `https` to `false`.
-  # (A `https: ${VAR:-...}` env substitution does NOT work here — Backstage
-  # config substitution is string-based with no boolean coercion, and
-  # readHttpsOptions rejects a string: "got string, wanted object".)
-  #
-  # Without HTTPS (or localhost) the UI errors with
-  # "globalThis.crypto.randomUUID is not a function" — secure contexts only.
-  https: true
+  # NOTE: `backend.https` is intentionally NOT set here.
+  # Backstage's readHttpsOptions accepts `true` (self-signed cert) or an object
+  # (pem cert) — plain HTTP means the key must be ABSENT. `https: false` crashes
+  # with "got boolean, wanted object". The Dockerfile CMD loads exactly one of:
+  #   app-config.https.yaml    (https: true  -> self-signed) when BACKSTAGE_HTTPS unset (dev)
+  #   app-config.traefik.yaml  (https absent -> plain HTTP)  when BACKSTAGE_HTTPS set (core)
 
   # Serve over plain HTTP on the LAN. Backstage's default CSP (from Helmet) includes
   # `upgrade-insecure-requests`, which rewrites every http:// subresource to https:// —

@@ -1,0 +1,11 @@
+# HTTPS via Backstage's generated self-signed certificate — loaded ONLY when
+# BACKSTAGE_HTTPS is unset (dev / direct-port access).
+#
+# The Dockerfile CMD loads exactly one of this file or app-config.traefik.yaml:
+#   BACKSTAGE_HTTPS unset -> this file  -> https: true  (self-signed cert)
+#   BACKSTAGE_HTTPS set   -> traefik    -> https absent (plain HTTP behind Traefik)
+#
+# Note: `https: false` is NOT valid — readHttpsOptions accepts `true` or an
+# object, and plain HTTP requires the key to be absent.
+backend:
+  https: true

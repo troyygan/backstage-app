@@ -69,11 +69,15 @@ RUN --mount=type=cache,target=/home/node/.cache/yarn,sharing=locked,uid=1000,gid
     yarn workspaces focus --all --production && rm -rf "$(yarn cache clean)"
 
 # Then copy the backend bundle + config files.
-COPY --chown=node:node app-config.yaml app-config.production.yaml app-config.traefik.yaml ./
+COPY --chown=node:node app-config.yaml app-config.production.yaml app-config.https.yaml app-config.traefik.yaml ./
 COPY --from=build --chown=node:node app/packages/backend/dist/bundle.tar.gz ./
 RUN tar xzf bundle.tar.gz && rm bundle.tar.gz
 
-# When BACKSTAGE_HTTPS is set (e.g. `false` on core, where Traefik terminates
-# TLS), append app-config.traefik.yaml which overrides `backend.https: false`
-# (plain HTTP internally). Unset on dev -> HTTPS with self-signed cert.
-CMD ["sh", "-c", "exec node packages/backend --config app-config.yaml --config app-config.production.yaml ${BACKSTAGE_HTTPS:+--config app-config.traefik.yaml}"]
+# Exactly one TLS file is loaded:
+#   BACKSTAGE_HTTPS set (e.g. "false" on core, behind Traefik) -> app-config.traefik.yaml
+#     (no `backend.https` key -> plain HTTP, Traefik terminates TLS)
+#   BACKSTAGE_HTTPS unset (dev / direct access)                -> app-config.https.yaml
+#     (backend.https: true -> Backstage self-signed cert)
+# `backend.https: false` is NOT a valid value (readHttpsOptions crashes), so it
+# is never set — plain HTTP is expressed by omitting the key.
+CMD ["sh", "-c", "if [ -n \"$BACKSTAGE_HTTPS\" ]; then EXTRA=app-config.traefik.yaml; else EXTRA=app-config.https.yaml; fi; exec node packages/backend --config app-config.yaml --config app-config.production.yaml --config \"$EXTRA\""]
