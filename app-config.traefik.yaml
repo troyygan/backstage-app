@@ -1,0 +1,11 @@
+# Core / Traefik-specific config — applied ONLY when the Dockerfile CMD sees
+# BACKSTAGE_HTTPS set (e.g. `false` in the Portainer stack env on core).
+#
+# On core, Traefik terminates TLS (websecure) and Backstage serves PLAIN HTTP
+# internally. A plain YAML boolean is required here — Backstage's env
+# substitution is string-based (no boolean coercion), so `https: ${VAR:-...}`
+# breaks readHttpsOptions ("got string, wanted object").
+#
+# Merged AFTER app-config.production.yaml, so this overrides `backend.https`.
+backend:
+  https: false
