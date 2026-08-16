@@ -4,21 +4,25 @@
 app:
   # Should be the same as backend.baseUrl when using the `app-backend` plugin.
   # Set to the browser-facing URL via the BACKSTAGE_APP_URL env var
-  # (dev: http://192.168.1.30:7007, core: http://backstage.homelab.lan).
+  # (dev: https://192.168.1.30:7007, core: https://backstage.homelab.lan via Traefik TLS).
   baseUrl: ${BACKSTAGE_APP_URL:-http://localhost:7007}
 
 backend:
   baseUrl: ${BACKSTAGE_APP_URL:-http://localhost:7007}
+
   # The listener can also be expressed as a single <host>:<port> string. In this case we bind to
   # all interfaces, the most permissive setting. The right value depends on your specific deployment.
   listen: ':7007'
 
-  # Serve HTTPS with a generated self-signed certificate. Backstage's frontend uses
-  # crypto.randomUUID(), which is only available in SECURE CONTEXTS (HTTPS or
-  # localhost). Over plain HTTP on a LAN IP the UI errors with
-  # "globalThis.crypto.randomUUID is not a function". `https: true` auto-generates
-  # a self-signed cert (accept the browser warning on first visit).
-  https: true
+  # Serve HTTPS when reached directly by port (dev: https://192.168.1.30:7007).
+  # On core, Traefik terminates TLS (websecure) and Backstage serves PLAIN HTTP
+  # internally — set BACKSTAGE_HTTPS=false there. `https: true` auto-generates a
+  # self-signed cert (accept the browser warning on first visit). This is
+  # env-driven so the same image serves both topologies.
+  #
+  # Without HTTPS (or localhost) the UI errors with
+  # "globalThis.crypto.randomUUID is not a function" — secure contexts only.
+  https: ${BACKSTAGE_HTTPS:-true}
 
   # Serve over plain HTTP on the LAN. Backstage's default CSP (from Helmet) includes
   # `upgrade-insecure-requests`, which rewrites every http:// subresource to https:// —

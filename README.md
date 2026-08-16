@@ -51,7 +51,8 @@ env-driven (see below).
 
 | Var | Required | Purpose |
 |---|---|---|
-| `BACKSTAGE_APP_URL` | yes (prod) | Browser-facing base URL (dev: `http://192.168.1.30:7007`, core: `http://backstage.homelab.lan`). Drives `app.baseUrl`, `backend.baseUrl`, and `cors.origin`. |
+| `BACKSTAGE_APP_URL` | yes (prod) | Browser-facing base URL (dev: `https://192.168.1.30:7007`, core: `https://backstage.homelab.lan`). Drives `app.baseUrl`, `backend.baseUrl`, and `cors.origin`. |
+| `BACKSTAGE_HTTPS` | core only | `false` on core (Traefik terminates TLS; Backstage serves plain HTTP internally). Unset/`true` elsewhere (direct HTTPS). |
 | `POSTGRES_HOST` | prod | `192.168.1.32` (docker-data-01) |
 | `POSTGRES_PORT` | prod | `5432` |
 | `POSTGRES_USER` | prod | `backstage` (DB user) |

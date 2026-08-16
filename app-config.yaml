@@ -1,7 +1,7 @@
 app:
   title: Troyygan Homelab Portal
-  # baseUrl is environment-specific (dev = http://192.168.1.30:7007, core =
-  # http://backstage.homelab.lan). Injected by the Portainer stack env vars.
+  # baseUrl is environment-specific (dev = https://192.168.1.30:7007, core =
+  # https://backstage.homelab.lan). Injected by the Portainer stack env vars.
   baseUrl: ${BACKSTAGE_APP_URL:-http://localhost:3000}
 
   # Enable all packages by default, this will discover packages from packages/app/package.json
