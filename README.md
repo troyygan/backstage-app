@@ -19,8 +19,8 @@ lives in `homelab-workloads/stacks/backstage/`.
 - **TechDocs** — renders existing markdown `docs/` folders (via `mkdocs.yml` +
   `backstage.io/techdocs-ref` annotations).
 - **Search** — Postgres-backed search over catalog + docs.
-- **Guest auth** — LAN-only eval; GitHub SSO is a future step (the
-  `github-provider` module is already wired in `packages/backend/src/index.ts`).
+- **GitHub SSO** — sign in with your GitHub account (`usernameMatchingUserEntityName` →
+  catalog `User` `troyygan`). Guest auth kept during the transition.
 
 ## Repository layout
 
@@ -58,6 +58,8 @@ env-driven (see below).
 | `POSTGRES_USER` | prod | `backstage` (DB user) |
 | `POSTGRES_PASSWORD` | prod | `backstage` DB password — **never committed** |
 | `GITHUB_TOKEN` | prod | PAT with `repo` scope for catalog fetches + TechDocs cloning |
+| `AUTH_GITHUB_CLIENT_ID` | prod | GitHub OAuth App client ID (sign-in) |
+| `AUTH_GITHUB_CLIENT_SECRET` | prod | GitHub OAuth App client secret — **never committed** |
 
 Set these in **Portainer → stack → env vars**, never in Git.
 

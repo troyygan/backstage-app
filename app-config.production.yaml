@@ -41,12 +41,21 @@ backend:
       password: ${POSTGRES_PASSWORD}
 
 auth:
-  # Guest sign-in for the LAN-only eval portal. `dangerouslyAllowOutsideDevelopment`
-  # is REQUIRED: without it, the guest provider refuses to issue tokens when
-  # NODE_ENV=production (the Docker image runs in production mode), and the UI
-  # shows "You cannot sign in as a guest". GitHub SSO is a future step (the
-  # github-provider auth module is already wired in src/index.ts).
+  # GitHub SSO (Phase 1). clientId/Secret are injected via Portainer env vars.
+  # `usernameMatchingUserEntityName` maps the GitHub login to a catalog User
+  # entity (homelab-workloads/org.yaml -> User "troyygan").
   providers:
+    github:
+      production:
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
+        signIn:
+          resolvers:
+            - resolver: usernameMatchingUserEntityName
+    # Guest sign-in for LAN convenience — keep during the SSO transition, then
+    # remove. `dangerouslyAllowOutsideDevelopment` is REQUIRED: without it, the
+    # guest provider refuses to issue tokens when NODE_ENV=production (the
+    # Docker image runs in production mode).
     guest:
       dangerouslyAllowOutsideDevelopment: true
 
@@ -57,6 +66,11 @@ catalog:
   locations:
     - type: url
       target: https://github.com/troyygan/homelab-workloads/blob/main/catalog-info.yaml
+
+    - type: url
+      target: https://github.com/troyygan/homelab-workloads/blob/main/org.yaml
+      rules:
+        - allow: [User, Group]
 
     - type: url
       target: https://github.com/troyygan/homelab-platform/blob/main/catalog-info.yaml
