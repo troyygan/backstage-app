@@ -67,9 +67,9 @@ techdocs:
         secretAccessKey: ${MINIO_ROOT_PASSWORD}
 
 auth:
-  # GitHub SSO — the only sign-in provider. clientId/Secret are injected via
-  # Portainer env vars. `usernameMatchingUserEntityName` maps the GitHub login
-  # to a catalog User entity (homelab-workloads/org.yaml -> User "troyygan").
+  # GitHub SSO — primary sign-in. clientId/Secret injected via Portainer env.
+  # `usernameMatchingUserEntityName` maps the GitHub login to a catalog User
+  # entity (homelab-workloads/org.yaml -> User "troyygan").
   providers:
     github:
       production:
@@ -78,6 +78,11 @@ auth:
         signIn:
           resolvers:
             - resolver: usernameMatchingUserEntityName
+    # Guest fallback so the portal stays reachable even if GitHub OAuth is
+    # unavailable. `dangerouslyAllowOutsideDevelopment` is REQUIRED when
+    # NODE_ENV=production (the Docker image).
+    guest:
+      dangerouslyAllowOutsideDevelopment: true
 
 catalog:
   # Explicit URL locations — `troyygan` is a personal GitHub account, so org
