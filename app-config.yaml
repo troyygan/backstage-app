@@ -69,6 +69,18 @@ proxy:
   #   '/test':
   #     target: 'https://example.com'
   #     changeOrigin: true
+  # Prometheus for the @roadiehq/backstage-plugin-prometheus frontend. The
+  # backstage container reaches prometheus over the `homelab` network.
+  endpoints:
+    '/prometheus/api':
+      target: 'http://prometheus:9090/api/v1/'
+      changeOrigin: true
+      secure: false
+
+# Prometheus plugin (roadie) — proxies through `proxy` above.
+prometheus:
+  proxyPath: /prometheus/api
+  uiUrl: http://prometheus:9090
 
 # Reference documentation http://backstage.io/docs/features/techdocs/configuration
 # Note: After experimenting with basic setup, use CI/CD to generate docs
