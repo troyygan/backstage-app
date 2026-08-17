@@ -17,7 +17,7 @@ lives in `homelab-workloads/stacks/backstage/`.
   entity, read from `catalog-info.yaml` files in `homelab-workloads`,
   `homelab-platform`, and this repo.
 - **TechDocs** — renders existing markdown `docs/` folders (via `mkdocs.yml` +
-  `backstage.io/techdocs-ref` annotations).
+  `backstage.io/techdocs-ref` annotations), published to MinIO (S3-compatible).
 - **Search** — Postgres-backed search over catalog + docs.
 - **GitHub SSO** — the only sign-in method; maps your GitHub login to the
   catalog `User` `troyygan` (`usernameMatchingUserEntityName`).
@@ -26,7 +26,10 @@ lives in `homelab-workloads/stacks/backstage/`.
 
 ```
 app-config.yaml              # base config (dev defaults, env-injected URLs)
-app-config.production.yaml   # prod: Postgres, GitHub locations, guest auth
+app-config.production.yaml   # prod: Postgres, GitHub SSO, MinIO TechDocs, MCP token
+app-config.https.yaml        # https:true (dev) — picked by the Dockerfile CMD
+app-config.traefik.yaml      # plain HTTP (core) — picked by the Dockerfile CMD
+templates/homelab-service/   # scaffolder template: new own-app source repo
 packages/app/                # frontend
 packages/backend/            # backend + Dockerfile (bundle embeds the frontend)
 packages/backend/src/index.ts# plugin wiring
@@ -60,6 +63,9 @@ env-driven (see below).
 | `GITHUB_TOKEN` | prod | PAT with `repo` scope for catalog fetches + TechDocs cloning |
 | `AUTH_GITHUB_CLIENT_ID` | prod | GitHub OAuth App client ID (sign-in) |
 | `AUTH_GITHUB_CLIENT_SECRET` | prod | GitHub OAuth App client secret — **never committed** |
+| `BACKSTAGE_MCP_TOKEN` | prod | Static bearer token for the MCP actions endpoint (`/api/mcp-actions/v1`) — **never committed** |
+| `MINIO_ROOT_USER` | prod | MinIO access key (TechDocs S3 publisher) |
+| `MINIO_ROOT_PASSWORD` | prod | MinIO secret key (TechDocs S3 publisher) — **never committed** |
 
 Set these in **Portainer → stack → env vars**, never in Git.
 

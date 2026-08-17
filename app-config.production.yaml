@@ -40,6 +40,32 @@ backend:
       user: ${POSTGRES_USER}
       password: ${POSTGRES_PASSWORD}
 
+  # External access for the MCP actions endpoint (AI assistants). The client
+  # calls /api/mcp-actions/v1 with `Authorization: Bearer <BACKSTAGE_MCP_TOKEN>`.
+  # Token is injected via Portainer env; never committed.
+  auth:
+    externalAccess:
+      - type: static
+        options:
+          token: ${BACKSTAGE_MCP_TOKEN}
+          subject: mcp-clients
+        accessRestrictions:
+          - plugin: mcp-actions
+          - plugin: catalog
+
+# TechDocs publishes to MinIO (S3-compatible) on docker-data-01 (minio:9000,
+# homelab network). Generator still runs in Docker via the mounted socket.
+techdocs:
+  publisher:
+    type: awsS3
+    awsS3:
+      bucketName: backstage-techdocs
+      endpoint: http://minio:9000
+      s3ForcePathStyle: true
+      credentials:
+        accessKeyId: ${MINIO_ROOT_USER}
+        secretAccessKey: ${MINIO_ROOT_PASSWORD}
+
 auth:
   # GitHub SSO — the only sign-in provider. clientId/Secret are injected via
   # Portainer env vars. `usernameMatchingUserEntityName` maps the GitHub login
@@ -71,3 +97,8 @@ catalog:
 
     - type: url
       target: https://github.com/troyygan/backstage-app/blob/main/catalog-info.yaml
+
+    - type: url
+      target: https://github.com/troyygan/backstage-app/blob/main/templates/homelab-service/template.yaml
+      rules:
+        - allow: [Template]

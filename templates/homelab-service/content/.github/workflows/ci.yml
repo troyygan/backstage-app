@@ -1,0 +1,26 @@
+name: ${{ values.name }}-build-and-push
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    # The local registry is LAN-only, so CI must run on the homelab self-hosted runner.
+    runs-on: [self-hosted, linux, homelab]
+    env:
+      REGISTRY: registry.homelab.lan:5000
+      IMAGE: ${{ values.name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image (tag = git SHA)
+        run: docker build -t "$REGISTRY/$IMAGE:${GITHUB_SHA::12}" .
+
+      - name: Push immutable SHA tag
+        run: docker push "$REGISTRY/$IMAGE:${GITHUB_SHA::12}"
+
+      - name: Push latest (moving tag)
+        run: |
+          docker tag "$REGISTRY/$IMAGE:${GITHUB_SHA::12}" "$REGISTRY/$IMAGE:latest"
+          docker push "$REGISTRY/$IMAGE:latest"
