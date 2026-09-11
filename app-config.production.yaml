@@ -78,6 +78,9 @@ catalog:
       target: https://github.com/troyygan/backstage-app/blob/main/catalog-info.yaml
 
     - type: url
+      target: https://github.com/troyygan/hermes-openclaw-lab/blob/main/catalog-info.yaml
+
+    - type: url
       target: https://github.com/troyygan/backstage-app/blob/main/templates/homelab-service/template.yaml
       rules:
         - allow: [Template]

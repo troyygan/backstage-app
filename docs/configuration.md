@@ -56,3 +56,19 @@ techdocs:
 `runIn: docker` means the portal spawns the `spotify/techdocs` container to
 generate docs, which requires the Docker socket mounted into the portal
 container (see `homelab-workloads/stacks/backstage/docker-compose.yml`).
+
+Mermaid diagrams are rendered in the browser by
+`backstage-plugin-techdocs-addon-mermaid`, registered as a TechDocs module in
+`packages/app/src/App.tsx`. Documentation repositories can keep their ordinary
+`mermaid` code fences and use `techdocs-core` in `mkdocs.yml`; the generator must
+provide `mkdocs-techdocs-core` 1.0.2 or later. No external diagram service is used.
+See the [Backstage Mermaid guide](https://backstage.io/docs/features/techdocs/how-to-guides/#how-to-add-mermaid-support-in-techdocs)
+and the [addon instructions](https://github.com/johanneswuerbach/backstage-plugin-techdocs-addon-mermaid#readme).
+
+The agent learning lab is registered through its explicit GitHub catalog URL in
+`app-config.production.yaml`. After the lab catalog and documentation changes
+reach its `main` branch and this portal image is rebuilt and deployed, open
+`/docs/default/component/hermes-openclaw-lab` and check the roadmap diagrams in
+both the TechDocs reader and the catalog entity's Docs tab. A successful MkDocs
+build verifies the generated documentation; browser rendering also needs this
+frontend addon. The standard TechDocs CLI preview does not include the addon.
