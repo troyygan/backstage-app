@@ -34,6 +34,9 @@ RUN yarn install --immutable
 # tsc outputs type definitions to dist-types/ in the repo root, consumed by the build
 RUN yarn tsc
 
+# Unit tests must pass before this build can become a deployable image.
+RUN yarn test --watchAll=false --runInBand --passWithNoTests
+
 # Build the backend bundle (embeds the frontend) into packages/backend/dist.
 RUN yarn build:backend
 

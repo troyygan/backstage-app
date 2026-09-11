@@ -1,41 +1,39 @@
-name: backstage-build-and-push
+name: Validate, build and propose Backstage release
 
 on:
   push:
     branches: [main]
-    paths:
-      - "packages/**"
-      - "app-config*.yaml"
-      - "package.json"
-      - "yarn.lock"
-      - "backstage.json"
-      - "Dockerfile"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backstage-release
+  cancel-in-progress: false
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main'
     runs-on: [self-hosted, linux, homelab]
+    timeout-minutes: 60
     env:
-      REGISTRY: registry.homelab.lan:5000
-      IMAGE: backstage
+      RELEASE_APP: backstage
+      IMAGE_REPOSITORY: registry.homelab.lan:5000/backstage
+      DOCKERFILE: packages/backend/Dockerfile
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
-      # Multi-stage Dockerfile: yarn install / tsc / build:backend all run
-      # inside the container, so this runner needs only `docker build`
-      # (no Node.js installed on the host).
-      - name: Build image (tag = git SHA)
-        run: docker build -f packages/backend/Dockerfile -t "$REGISTRY/$IMAGE:${GITHUB_SHA::12}" .
+      # Docker runs locked Yarn install, TypeScript, unit tests and the bundle
+      # build before publishing. The LAN runner already has registry auth.
+      - name: Publish or verify the immutable commit image
+        id: image
+        run: python3 scripts/publish-image.py
 
-      - name: Push immutable SHA tag
-        run: docker push "$REGISTRY/$IMAGE:${GITHUB_SHA::12}"
-
-      - name: Push latest (moving tag)
-        run: |
-          docker tag  "$REGISTRY/$IMAGE:${GITHUB_SHA::12}" "$REGISTRY/$IMAGE:latest"
-          docker push "$REGISTRY/$IMAGE:latest"
-
-      - name: Trigger Portainer redeploy
-        if: env.PORTAINER_WEBHOOK_URL != ''
-        run: curl -fsS -X POST "$PORTAINER_WEBHOOK_URL"
+      - name: Request workload validation and reviewed release PR
         env:
-          PORTAINER_WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}
+          GH_TOKEN: ${{ secrets.WORKLOADS_DISPATCH_TOKEN }}
+          RELEASE_IMAGE: ${{ steps.image.outputs.reference }}
+        run: python3 scripts/request-workload-release.py
