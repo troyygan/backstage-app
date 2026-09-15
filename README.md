@@ -70,14 +70,19 @@ Set these in **Portainer → stack → env vars**, never in Git.
 
 ## Image build (CI)
 
-`.github/workflows/backstage-ci.yml` runs on the **self-hosted LAN runner**
+Every push to `main` runs `.github/workflows/backstage-ci.yml` on the **self-hosted LAN runner**
 (`[self-hosted, linux, homelab]`) because the registry is LAN-only:
 
 1. Install locked Yarn dependencies, run TypeScript and unit tests, then build the production bundle inside Docker.
 2. Publish `registry.homelab.lan:5000/backstage:<full-commit-SHA>` with its OCI revision label. Re-runs verify and reuse that exact image; they never replace a published commit tag.
-3. Request the `custom-app-release.yml` workflow in `homelab-workloads`, passing the source run and exact image digest.
-4. The workload workflow checks successful source CI, validates a temporary dev stack with its own Postgres and no production integrations, removes it, and opens a release PR.
-5. Review and merge the workload PR. Portainer CE polling deploys the pinned image to core.
+3. Request the `custom-app-release.yml` workflow in `homelab-workloads` with `target=core`, passing the source run and exact image digest.
+4. The workload workflow checks successful source CI and automatically updates the image pin on workload `main`.
+5. Portainer CE polling deploys directly to core. Failed source CI leaves core on its previous image. No dev prerequisite or second release PR is needed.
+
+To request optional dev checks, run **Validate, build and deploy Backstage**
+manually on `main` with `target: dev`. It validates a temporary dev stack with
+its own Postgres and no production integrations, then removes the stack and
+its storage. That run never promotes core.
 
 Configure the repository secret `WORKLOADS_DISPATCH_TOKEN` with permission to
 run the workload repository's release workflow. Registry authentication stays

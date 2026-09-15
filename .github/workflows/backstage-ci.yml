@@ -1,9 +1,16 @@
-name: Validate, build and propose Backstage release
+name: Validate, build and deploy Backstage
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      target:
+        description: Core deployment or optional temporary dev validation
+        required: false
+        type: choice
+        default: core
+        options: [core, dev]
 
 permissions:
   contents: read
@@ -32,8 +39,9 @@ jobs:
         id: image
         run: python3 scripts/publish-image.py
 
-      - name: Request workload validation and reviewed release PR
+      - name: Request deployment to the selected target
         env:
           GH_TOKEN: ${{ secrets.WORKLOADS_DISPATCH_TOKEN }}
           RELEASE_IMAGE: ${{ steps.image.outputs.reference }}
+          RELEASE_TARGET: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'core' }}
         run: python3 scripts/request-workload-release.py
